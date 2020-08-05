@@ -1,6 +1,6 @@
 #pragma once
 
-#include <monads/trivial.hpp>
+#include <monads/type_traits.hpp>
 #include <monads/maybe.hpp>
 
 namespace monad
