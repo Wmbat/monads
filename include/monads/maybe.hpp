@@ -1,7 +1,5 @@
 #pragma once
 
-#include "monads/type_traits.hpp"
-
 #include <cassert>
 #include <compare>
 #include <functional>
@@ -30,333 +28,187 @@ namespace monad
    class maybe
    // clang-format on
    {
-      template <class type_, class dummy_ = void>
-      class storage
+      static inline constexpr bool is_nt_copy_value_constructible =
+         std::is_nothrow_copy_constructible_v<any_>;
+
+      static inline constexpr bool is_nt_move_value_constructible =
+         std::is_nothrow_move_constructible_v<any_>;
+
+      static inline constexpr bool is_nt_value_copyable =
+         std::is_nothrow_copy_assignable_v<any_> && std::is_nothrow_copy_constructible_v<any_>;
+
+      static inline constexpr bool is_nt_value_movable =
+         std::is_nothrow_move_assignable_v<any_> && std::is_nothrow_move_constructible_v<any_>;
+
+      static inline constexpr bool is_nt_swappable =
+         std::is_nothrow_move_constructible_v<any_> && std::is_nothrow_swappable_v<any_>;
+
+      static inline constexpr bool is_nt_destructible = std::is_nothrow_destructible_v<any_>;
+
+   public:
+      using value_type = any_;
+
+      constexpr maybe() noexcept = default;
+      constexpr maybe(const value_type& value) noexcept(is_nt_copy_value_constructible)
       {
-      public:
-         using value_type = type_;
-
-      private:
-         // clang-format off
-         static inline constexpr bool is_nothrow_default_constructible =
-            std::is_nothrow_default_constructible_v<std::array<std::byte, sizeof(value_type)>>;
-
-         static inline constexpr bool is_nothrow_copy_value_constructible =
-            std::is_nothrow_copy_constructible_v<value_type> && 
-            std::is_nothrow_default_constructible_v<std::array<std::byte, sizeof(value_type)>>;
-         
-         static inline constexpr bool is_nothrow_move_value_constructible =
-            std::is_nothrow_move_constructible_v<value_type> &&
-            std::is_nothrow_default_constructible_v<std::array<std::byte, sizeof(value_type)>>;
-
-         static inline constexpr bool is_nothrow_destructible = 
-            std::is_nothrow_destructible_v<value_type> &&
-            std::is_nothrow_destructible_v<std::array<std::byte, sizeof(value_type)>>;
-
-         static inline constexpr bool is_nothrow_copy_assignable =
-            is_nothrow_copy_value_constructible && 
-            is_nothrow_default_constructible;
-
-         static inline constexpr bool is_nothrow_move_assignable =
-            is_nothrow_move_value_constructible && 
-            is_nothrow_default_constructible;
-
-         static inline constexpr bool is_nothrow_value_copyable =
-            std::is_nothrow_copy_assignable_v<value_type> &&
-            std::is_nothrow_copy_constructible_v<value_type>;
-
-         static inline constexpr bool is_nothrow_value_movable =
-            std::is_nothrow_move_assignable_v<value_type> &&
-            std::is_nothrow_move_constructible_v<value_type>;
-
-         static inline constexpr bool is_nothrow_swappable =
-            std::is_nothrow_move_assignable_v<value_type> &&
-            std::is_nothrow_destructible_v<value_type> &&
-            std::is_nothrow_swappable_v<value_type>;
-         // clang-format on
-
-      public:
-         constexpr storage() noexcept(is_nothrow_default_constructible) = default;
-         constexpr storage(const value_type& value) noexcept(is_nothrow_copy_value_constructible) :
-            m_is_engaged{true}
+         std::construct_at(pointer(), value);
+      }
+      constexpr maybe(value_type&& value) noexcept(is_nt_move_value_constructible)
+      {
+         std::construct_at(pointer(), std::move(value));
+      }
+      constexpr maybe(const maybe& rhs) noexcept(is_nt_copy_value_constructible) requires(
+         !std::is_trivially_copy_constructible_v<value_type>) :
+         m_is_engaged{rhs.engaged()}
+      {
+         if (has_value())
          {
-            std::construct_at(pointer(), value);
+            std::construct_at(pointer(), rhs.value());
          }
-         constexpr storage(value_type&& value) noexcept(is_nothrow_move_value_constructible) :
-            m_is_engaged{true}
+      }
+      constexpr maybe(const maybe& rhs) noexcept = default;
+      constexpr maybe(maybe&& rhs) noexcept(is_nt_move_value_constructible) requires(
+         !std::is_trivially_move_constructible_v<value_type>) :
+         m_is_engaged{rhs.engaged()}
+      {
+         if (has_value())
          {
-            std::construct_at(pointer(), std::move(value));
+            std::construct_at(pointer(), std::move(rhs.value));
+            rhs.m_is_engaged = false;
          }
-         constexpr storage(const storage& rhs) noexcept(is_nothrow_copy_value_constructible) :
-            m_is_engaged{rhs.engaged()}
+      }
+      constexpr maybe(maybe&& rhs) noexcept = default;
+      constexpr maybe(none_t) noexcept {}
+      constexpr ~maybe() noexcept(is_nt_destructible) requires(
+         !std::is_trivially_destructible_v<value_type>)
+      {
+         if (m_is_engaged)
          {
-            if (engaged())
+            std::destroy_at(pointer());
+         }
+      }
+      constexpr ~maybe() noexcept = default;
+
+      constexpr auto operator=(const maybe& rhs) noexcept(is_nt_value_copyable)
+         -> maybe& requires(!std::is_trivially_copy_assignable_v<value_type>)
+      {
+         if (this != &rhs)
+         {
+            if (has_value())
+            {
+               std::destroy_at(pointer());
+            }
+
+            m_is_engaged = rhs.m_is_engaged;
+
+            if (m_is_engaged)
             {
                std::construct_at(pointer(), rhs.value());
             }
          }
-         constexpr storage(storage&& rhs) noexcept(is_nothrow_move_value_constructible) :
-            m_is_engaged{rhs.engaged()}
-         {
-            if (engaged())
-            {
-               std::construct_at(pointer(), std::move(rhs.value));
-               rhs.m_is_engaged = false;
-            }
-         }
-         ~storage() noexcept(is_nothrow_destructible)
-         {
-            if (engaged())
-            {
-               std::destroy_at(pointer());
-               m_is_engaged = false;
-            }
-         }
 
-         constexpr auto operator=(const storage& rhs) noexcept(is_nothrow_copy_assignable)
-            -> storage&
-         {
-            if (this != &rhs)
-            {
-               if (engaged())
-               {
-                  std::destroy_at(pointer());
-               }
-
-               m_is_engaged = rhs.engaged();
-
-               if (m_is_engaged)
-               {
-                  std::construct_at(pointer(), rhs.value());
-               }
-            }
-
-            return *this;
-         }
-         constexpr auto operator=(storage&& rhs) noexcept(is_nothrow_move_assignable) -> storage&
-         {
-            if (this != &rhs)
-            {
-               if (engaged())
-               {
-                  std::destroy_at(pointer());
-               }
-
-               m_is_engaged = rhs.engaged();
-               rhs.m_is_engaged = false;
-
-               if (engaged())
-               {
-                  std::construct_at(pointer(), std::move(rhs.value()));
-               }
-            }
-
-            return *this;
-         }
-
-         [[nodiscard]] constexpr auto engaged() const noexcept -> bool { return m_is_engaged; }
-
-         constexpr void
-         swap(storage& other) noexcept(is_nothrow_swappable) requires std::swappable<value_type>
-         {
-            if (engaged() && other.engaged())
-            {
-               std::swap(value(), other.value());
-            }
-
-            if (engaged() && !other.engaged())
-            {
-               std::swap(m_is_engaged, other.m_is_engaged);
-               other.value() = value();
-
-               std::destroy_at(pointer());
-            }
-
-            if (!engaged() && other.engaged())
-            {
-               std::swap(m_is_engaged, other.m_is_engaged);
-               value() = other.value();
-
-               std::destroy_at(other.pointer());
-            }
-         }
-
-         constexpr auto pointer() noexcept -> value_type*
-         {
-            return reinterpret_cast<value_type*>(m_bytes.data()); // NOLINT
-         }
-         constexpr auto pointer() const noexcept -> const value_type*
-         {
-            return reinterpret_cast<const value_type*>(m_bytes.data()); // NOLINT
-         }
-
-         constexpr auto value() & noexcept -> value_type& { return *pointer(); }
-         constexpr auto value() const& noexcept(is_nothrow_value_copyable) -> const value_type&
-         {
-            return *pointer();
-         }
-         constexpr auto value() && noexcept(is_nothrow_value_movable) -> value_type&&
-         {
-            return std::move(*pointer());
-         }
-         constexpr auto value() const&& noexcept(is_nothrow_value_movable) -> const value_type&&
-         {
-            return std::move(*pointer());
-         }
-
-      private:
-         alignas(value_type) std::array<std::byte, sizeof(value_type)> m_bytes;
-         bool m_is_engaged{false};
-      };
-
-      template <class type_>
-      class storage<type_, std::enable_if_t<trivial<type_>>>
+         return *this;
+      }
+      constexpr auto operator=(maybe&& rhs) noexcept(is_nt_value_movable)
+         -> maybe& requires(!std::is_trivially_move_assignable_v<value_type>)
       {
-      public:
-         using value_type = type_;
-
-         constexpr storage() noexcept = default;
-         constexpr storage(const value_type& value) noexcept : m_is_engaged{true}
+         if (this != &rhs)
          {
-            std::construct_at(pointer(), value);
-         }
-         constexpr storage(value_type&& value) noexcept : m_is_engaged{true}
-         {
-            std::construct_at(pointer(), std::move(value));
-         }
-
-         [[nodiscard]] constexpr auto engaged() const noexcept -> bool { return m_is_engaged; }
-
-         constexpr void swap(storage& other) noexcept requires std::swappable<value_type>
-         {
-            if (engaged() && other.engaged())
+            if (has_value())
             {
-               std::swap(value(), other.value());
+               std::destroy_at(pointer());
             }
 
-            if (engaged() && !other.engaged())
-            {
-               std::swap(m_is_engaged, other.m_is_engaged);
-               other.value() = value();
-            }
+            m_is_engaged = rhs.m_is_engaged;
+            rhs.m_is_engaged = false;
 
-            if (!engaged() && other.engaged())
+            if (has_value())
             {
-               std::swap(m_is_engaged, other.m_is_engaged);
-               value() = other.value();
+               std::construct_at(pointer(), std::move(rhs.value()));
             }
          }
 
-         constexpr auto pointer() noexcept -> value_type*
-         {
-            return reinterpret_cast<value_type*>(m_bytes.data()); // NOLINT
-         }
-         constexpr auto pointer() const noexcept -> const value_type*
-         {
-            return reinterpret_cast<const value_type*>(m_bytes.data()); // NOLINT
-         }
-
-         constexpr auto value() & noexcept -> value_type& { return *pointer(); }
-         constexpr auto value() const& noexcept -> const value_type& { return *pointer(); }
-         constexpr auto value() && noexcept -> value_type&& { return std::move(*pointer()); }
-         constexpr auto value() const&& noexcept -> const value_type&&
-         {
-            return std::move(*pointer());
-         }
-
-      private:
-         alignas(value_type) std::array<std::byte, sizeof(value_type)> m_bytes;
-         bool m_is_engaged{false};
-      };
-
-      using storage_type = storage<any_>;
-
-      static inline constexpr bool is_nothrow_default_constructible =
-         std::is_nothrow_default_constructible_v<storage_type>;
-
-      static inline constexpr bool is_nothrow_rvalue_constructible =
-         std::is_nothrow_constructible_v<storage_type, any_&&>;
-
-      static inline constexpr bool is_nothrow_lvalue_constructible =
-         std::is_nothrow_constructible_v<storage_type, any_>;
-
-      static inline constexpr bool is_nothrow_value_copyable =
-         std::is_nothrow_copy_assignable_v<any_> && std::is_nothrow_copy_constructible_v<any_>;
-
-      static inline constexpr bool is_nothrow_value_movable =
-         std::is_nothrow_move_assignable_v<any_> && std::is_nothrow_move_constructible_v<any_>;
-
-      static inline constexpr bool is_nothrow_swappable =
-         std::is_nothrow_move_constructible_v<any_> && std::is_nothrow_swappable_v<any_>;
-
-   public:
-      using value_type = typename storage_type::value_type;
-
-      constexpr maybe() noexcept(is_nothrow_default_constructible) = default;
-      constexpr maybe(const value_type& value) noexcept(is_nothrow_lvalue_constructible) :
-         m_storage{value}
-      {}
-      constexpr maybe(value_type&& value) noexcept(is_nothrow_rvalue_constructible) :
-         m_storage{std::move(value)}
-      {}
-      constexpr maybe(none_t) noexcept(is_nothrow_default_constructible) {}
+         return *this;
+      }
 
       constexpr auto operator->() noexcept -> value_type*
       {
          assert(has_value());
 
-         return m_storage.pointer();
+         return pointer();
       }
       constexpr auto operator->() const noexcept -> const value_type*
       {
          assert(has_value());
 
-         return m_storage.pointer();
+         return pointer();
       }
 
-      constexpr auto operator*() & noexcept -> value_type& { return m_storage.value(); }
-      constexpr auto operator*() const& noexcept(is_nothrow_value_copyable) -> const value_type&
+      constexpr auto operator*() & noexcept -> value_type& { value(); }
+      constexpr auto operator*() const& noexcept(is_nt_value_copyable) -> const value_type&
       {
-         return m_storage.value();
+         return value();
       }
-      constexpr auto operator*() && noexcept(is_nothrow_value_movable) -> value_type&&
+      constexpr auto operator*() && noexcept(is_nt_value_movable) -> value_type&&
       {
-         return std::move(m_storage.value());
+         return std::move(value());
       }
-      constexpr auto operator*() const&& noexcept(is_nothrow_value_movable) -> const value_type&&
+      constexpr auto operator*() const&& noexcept(is_nt_value_movable) -> const value_type&&
       {
-         return std::move(m_storage.value());
+         return std::move(value());
       }
 
-      [[nodiscard]] constexpr auto has_value() const noexcept -> bool
-      {
-         return m_storage.engaged();
-      }
+      [[nodiscard]] constexpr auto has_value() const noexcept -> bool { return m_is_engaged; }
       constexpr operator bool() const noexcept { return has_value(); }
+
+      constexpr void
+      swap(maybe& other) noexcept(is_nt_swappable) requires std::swappable<value_type>
+      {
+         if (has_value() && other.has_value())
+         {
+            std::swap(value(), other.value());
+         }
+
+         if (has_value() && !other.has_value())
+         {
+            std::swap(m_is_engaged, other.m_is_engaged);
+            other.value() = value();
+
+            std::destroy_at(pointer());
+         }
+
+         if (!has_value() && other.has_value()())
+         {
+            std::swap(m_is_engaged, other.m_is_engaged);
+            value() = other.value();
+
+            std::destroy_at(other.pointer());
+         }
+      }
 
       constexpr auto value() & noexcept -> value_type&
       {
          assert(has_value());
 
-         return m_storage.value();
+         return *pointer();
       }
-      constexpr auto value() const& noexcept(is_nothrow_value_copyable) -> const value_type&
+      constexpr auto value() const& noexcept(is_nt_value_copyable) -> const value_type&
       {
          assert(has_value());
 
-         return m_storage.value();
+         return *pointer();
       }
-      constexpr auto value() && noexcept(is_nothrow_value_movable) -> value_type&&
+      constexpr auto value() && noexcept(is_nt_value_movable) -> value_type&&
       {
          assert(has_value());
 
-         return std::move(m_storage.value());
+         return std::move(*pointer());
       }
-      constexpr auto value() const&& noexcept(is_nothrow_value_movable) -> const value_type&&
+      constexpr auto value() const&& noexcept(is_nt_value_movable) -> const value_type&&
       {
          assert(has_value());
 
-         return std::move(m_storage.value());
+         return std::move(*pointer());
       }
 
       constexpr auto
@@ -373,16 +225,11 @@ namespace monad
             : static_cast<value_type>(std::forward<decltype(default_value)>(default_value));
       }
 
-      constexpr void swap(maybe& other) noexcept(noexcept(m_storage.swap(other.m_storage)))
-      {
-         m_storage.swap(other.m_storage);
-      }
-
       constexpr void reset() noexcept(std::is_nothrow_destructible_v<value_type>)
       {
          if (has_value())
          {
-            std::destroy_at(m_storage.pointer());
+            std::destroy_at(pointer());
          }
       }
 
@@ -414,7 +261,18 @@ namespace monad
       }
 
    private:
-      storage<value_type> m_storage{};
+      constexpr auto pointer() noexcept -> value_type*
+      {
+         return reinterpret_cast<value_type*>(m_bytes.data()); // NOLINT
+      }
+      constexpr auto pointer() const noexcept -> const value_type*
+      {
+         return reinterpret_cast<const value_type*>(m_bytes.data()); // NOLINT
+      }
+
+   private:
+      alignas(value_type) std::array<std::byte, sizeof(value_type)> m_bytes;
+      bool m_is_engaged{false};
    };
 
    template <class any_>

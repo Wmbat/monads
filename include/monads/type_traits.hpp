@@ -10,6 +10,12 @@ namespace monad
    concept trivially_default_constructible = std::is_trivially_default_constructible_v<any_>;
 
    template <typename any_>
+   concept trivially_copy_constructible = std::is_trivially_copy_constructible_v<any_>;
+
+   template <typename any_>
+   concept trivially_copy_assignable = std::is_trivially_copy_assignable_v<any_>;
+
+   template <typename any_>
    concept trivially_copyable = std::is_trivially_copyable_v<any_>;
 
    template <typename any_>
