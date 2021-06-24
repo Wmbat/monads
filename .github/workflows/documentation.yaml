@@ -15,13 +15,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get -y update
-          sudo apt-get -y install wget gnupg
-          sudo wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-          sudo echo "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-12 main" >> /etc/apt/sources.list.d/llvm.list
-          sudo echo "deb-src http://apt.llvm.org/focal/ llvm-toolchain-focal-12 main" >> /etc/apt/sources.list.d/llvm.list
-          sudo apt-get -y update
-          sudo apt-get -y install \
+          sudo bash
+          apt-get -y update
+          apt-get -y install wget gnupg
+          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
+          echo "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-12 main" >> /etc/apt/sources.list.d/llvm.list
+          echo "deb-src http://apt.llvm.org/focal/ llvm-toolchain-focal-12 main" >> /etc/apt/sources.list.d/llvm.list
+          apt-get -y update
+          apt-get -y install \
               build-essential \
               meson \
               ninja-build \
