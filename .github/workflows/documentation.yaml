@@ -15,6 +15,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          sudo apt-get remove llvm clang
           sudo apt-get -y update
           sudo apt-get -y install wget gnupg
           sudo wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
