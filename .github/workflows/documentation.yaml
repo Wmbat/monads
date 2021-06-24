@@ -46,7 +46,9 @@ jobs:
           git clone https://github.com/hdoc/hdoc
           cd hdoc
           sudo meson build
-          cat /home/runner/work/libreglisse/libreglisse/hdoc/build/meson-logs/meson-log.txt
+
+      - name: Probing
+        run: cat /home/runner/work/libreglisse/libreglisse/hdoc/build/meson-logs/meson-log.txt
 
 #      - name: Publish
 #        uses: peaceiris/actions-gh-pages@v3
