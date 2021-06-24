@@ -18,7 +18,9 @@ jobs:
           sudo apt-get -y update
           sudo apt-get -y install wget gnupg
           sudo wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+          sudo echo /etc/apt/sources.list.d/llvm.list
           sudo echo "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-12 main" | sudo tee -a /etc/apt/sources.list.d/llvm.list
+          sudo echo /etc/apt/sources.list.d/llvm.list
           sudo echo "deb-src http://apt.llvm.org/focal/ llvm-toolchain-focal-12 main" | sudo tee -a /etc/apt/sources.list.d/llvm.list
           sudo apt-get -y update
           sudo apt-get -y install \
@@ -43,8 +45,7 @@ jobs:
         run: |
           git clone https://github.com/hdoc/hdoc
           cd hdoc
-          meson build
-          ninja -C build
+          sudo meson build && sudo ninja -C build
 
 #      - name: Publish
 #        uses: peaceiris/actions-gh-pages@v3
