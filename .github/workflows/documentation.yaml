@@ -39,7 +39,8 @@ jobs:
               zlib1g-dev \
               libssl-dev \
               libcurl4-openssl-dev
-         
+          clang -v
+
       - name: Get hdoc 
         run: |
           git clone https://github.com/hdoc/hdoc
