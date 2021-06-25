@@ -41,13 +41,15 @@ jobs:
               libssl-dev \
               libcurl4-openssl-dev \
               gcc-11
-          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 --slave /usr/bin/g++ g++ /usr/bin/g++-11 --slave /usr/bin/gcov gcov /usr/bin/gcov-11
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 100
           gcc -v
+          g++ -v
 
       - name: Get compilation database
         run: |
           cd ../ && mkdir out/ && cd out/
-          cmake ../libreglisse -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_EXPORT_COMPILE_COMMANDS=On -DCMAKE_BUILD_TYPE=Debug
+          cmake ../libreglisse -DCMAKE_EXPORT_COMPILE_COMMANDS=On -DCMAKE_BUILD_TYPE=Debug
           mv compile_commands.json ../libreglisse/
 
       - name: Get hdoc 
