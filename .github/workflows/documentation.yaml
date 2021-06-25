@@ -62,7 +62,7 @@ jobs:
 
       - name: Get hdoc 
         run: |
-          git clone https://github.com/hdoc/hdoc
+          git clone https://github.com/hdoc/hdoc --branch 1.1.0
           cd hdoc
           sudo meson build && sudo ninja -C build
           cd ../
