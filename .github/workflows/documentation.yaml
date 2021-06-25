@@ -66,8 +66,7 @@ jobs:
           cd hdoc
           sudo meson build && sudo ninja -C build
           cd ../
-          hdoc/build/hdoc --help
-          hdoc/build/hdoc --verbose
+          sudo hdoc/build/hdoc --verbose
           ls -lah
 
 #      - name: Publish
