@@ -47,7 +47,7 @@ jobs:
       - name: Get compilation database
         run: |
           cd ../ && mkdir out/ && cd out/
-          cmake ../libreglisse -DCMAKE_CXX_COMPILER=g++ -DCMAKE_EXPORT_COMPILE_COMMANDS=On -DCMAKE_BUILD_TYPE=Debug
+          cmake ../libreglisse -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_EXPORT_COMPILE_COMMANDS=On -DCMAKE_BUILD_TYPE=Debug
           mv compile_commands.json ../libreglisse/
 
       - name: Get hdoc 
