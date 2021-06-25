@@ -36,6 +36,16 @@ target_link_libraries(libreglisse_test
 target_sources(libreglisse_test
     PRIVATE
         basic/main.cpp
+        basic/either/left.cpp
+        basic/either/right.cpp
+        basic/either/either.cpp
+        basic/maybe/maybe.cpp
+        basic/maybe/none_t.cpp
+        basic/maybe/some.cpp
+        basic/result/err.cpp
+        basic/result/ok.cpp
+        basic/result/result.cpp
+        basic/result/try.cpp
 )
 
 add_test( NAME libreglisse_test COMMAND libreglisse_test )
