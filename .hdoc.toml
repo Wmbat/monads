@@ -10,4 +10,4 @@ git_repo_url = "https://github.com/Wmbat/libreglisse/blob/main/"
 homepage = "docs/homepage.md"
 
 [paths]
-compile_commands = "docs/compile_commands.json"
+compile_commands = "compile_commands.json"

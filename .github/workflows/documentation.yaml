@@ -41,20 +41,19 @@ jobs:
               libssl-dev \
               libcurl4-openssl-dev
 
-      - name: Get Build2 
+      - name: Get compilation database
         run: |
-          cd ../ && mkdir build2-build && cd build2-build
-          curl -sSfO https://download.build2.org/0.13.0/build2-install-0.13.0.sh
-          shasum -a 256 -b build2-install-0.13.0.sh
-          sh build2-install-0.13.0.sh
-          cd ../
+          cd ../ && mkdir out/ && cd out/
+          cmake ../libreglisse -DCMAKE_EXPORT_COMPILE_COMMANDS=On -DCMAKE_BUILD_TYPE=Debug
+          mv compile_commands.json ../libreglisse/
 
       - name: Get hdoc 
         run: |
+          cd ../
           git clone https://github.com/hdoc/hdoc
           cd hdoc
           sudo meson build && sudo ninja -C build
-          cd ../libreglisse/
+          cd ../../libreglisse/
           hdoc/build/hdoc --verbose
           ls -lah
 

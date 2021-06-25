@@ -1,4 +1,8 @@
+#include <libreglisse/either.hpp>
 #include <libreglisse/maybe.hpp>
+#include <libreglisse/ref.hpp>
+#include <libreglisse/result.hpp>
+#include <libreglisse/try.hpp>
 
 #include <exception>
 #include <string>

@@ -1,10 +1,10 @@
 cmake_minimum_required( VERSION 3.14...3.17 FATAL_ERROR )
 
 CPMAddPackage(
-    NAME doctest
-    VERSION 2.4.0
-    GITHUB_REPOSITORY onqtam/doctest
-    GIT_TAG 2.4.0
+    NAME Catch2 
+    VERSION 2.13.6
+    GITHUB_REPOSITORY catchorg/Catch2
+    GIT_TAG v2.13.6
 )
 
 add_executable(libreglisse_test)
@@ -24,7 +24,7 @@ target_compile_options(libreglisse_test
 target_link_libraries(libreglisse_test
     PUBLIC
         libreglisse::libreglisse 
-        doctest::doctest
+        Catch2
 
     PRIVATE
         $<$<AND:$<CXX_COMPILER_ID:Clang>,$<CONFIG:DEBUG>>:-fcoverage-mapping>
@@ -35,7 +35,7 @@ target_link_libraries(libreglisse_test
 
 target_sources(libreglisse_test
     PRIVATE
-        libreglisse/main.cpp
+        basic/main.cpp
 )
 
 add_test( NAME libreglisse_test COMMAND libreglisse_test )
