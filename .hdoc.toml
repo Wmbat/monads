@@ -4,7 +4,7 @@ version = "0.1.0-a.5.z"
 
 # Optional, adding this will enable direct links from the documentation
 # to your source code.
-git_repo_url = "https://github.com/Wmbat/libreglisse/blob/main/"
+git_repo_url = "https://github.com/Wmbat/libreglisse/tree/master/"
 
 [pages]
 homepage = "docs/homepage.md"

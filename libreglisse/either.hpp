@@ -81,7 +81,7 @@ namespace reglisse
    class right;
 
    /**
-    * @brief Class used for creating a left either monad
+    * @brief Helper class to construct a left-handed either monad
     */
    template <std::movable T>
       requires(not std::is_reference_v<T>)
@@ -91,23 +91,50 @@ namespace reglisse
       using value_type = T;
 
    public:
+      /**
+       * @brief Construct from a value_type.
+       *
+       * @param [in] value The value to move into the class.
+       */
       explicit constexpr left(value_type&& value) : m_value(std::move(value)) {}
 
-      constexpr auto value() const& noexcept -> const value_type& { return m_value; }
-      constexpr auto value() & noexcept -> value_type& { return m_value; }
-      constexpr auto value() const&& noexcept -> const value_type { return std::move(m_value); }
-      constexpr auto value() && noexcept -> value_type { return std::move(m_value); }
+      /**
+       * @brief Borrow the value stored within the class
+       *
+       * @return An immutable reference to the value stored within the class.
+       */
+      constexpr auto borrow() const& noexcept -> const value_type& { return m_value; }
+      /**
+       * @brief Borrow the value stored within the class
+       *
+       * @return A mutable reference to the value stored within the class.
+       */
+      constexpr auto borrow() & noexcept -> value_type& { return m_value; }
+      /**
+       * @brief Take the value stored within the class. This operation leaves the class in an
+       * undefined state.
+       *
+       * @return The value stored within the class
+       */
+      constexpr auto take() const&& noexcept -> const value_type { return std::move(m_value); }
+      /**
+       * @brief Take the value stored within the class. This operation leaves the class in an
+       * undefined state.
+       *
+       * @return The value stored within the class
+       */
+      constexpr auto take() && noexcept -> value_type { return std::move(m_value); }
 
       template <std::equality_comparable_with<value_type> U>
       constexpr auto operator==(const left<U>& rhs) const -> bool
       {
-         return value() == rhs.value();
+         return borrow() == rhs.borrow();
       }
 
       template <std::equality_comparable_with<value_type> U>
       constexpr auto operator==(const right<U>& rhs) const -> bool
       {
-         return value() == rhs.value();
+         return borrow() == rhs.borrow();
       }
 
    private:
@@ -115,7 +142,7 @@ namespace reglisse
    };
 
    /**
-    * @brief Class used for creating a right either monad
+    * @brief Helper class to construct a right-handed either monad
     */
    template <std::movable T>
       requires(not std::is_reference_v<T>)
@@ -133,46 +160,41 @@ namespace reglisse
       explicit constexpr right(value_type&& value) : m_value(std::move(value)) {}
 
       /**
-       * @brief Access the inner value
+       * @brief Borrow the value stored within the class
        *
-       * @return A reference to the stored value
+       * @return An immutable reference to the value stored within the class.
        */
-      constexpr auto value() const& noexcept -> const value_type& { return m_value; }
+      constexpr auto borrow() const& noexcept -> const value_type& { return m_value; }
       /**
-       * @brief Access the inner value
+       * @brief Borrow the value stored within the class
        *
-       * @return A reference to the stored value
+       * @return A mutable reference to the value stored within the class.
        */
-      constexpr auto value() & noexcept -> value_type& { return m_value; }
+      constexpr auto borrow() & noexcept -> value_type& { return m_value; }
       /**
-       * @brief Take the inner value stored in the right<value_type>
+       * @brief Take the value stored within the class. This operation leaves the class in an
+       * undefined state.
        *
-       * @return The value stored in the object
+       * @return The value stored within the class
        */
-      constexpr auto value() const&& noexcept -> const value_type { return std::move(m_value); }
+      constexpr auto take() const&& noexcept -> const value_type { return std::move(m_value); }
       /**
-       * @brief Take the inner value stored in the right<value_type>
+       * @brief Take the value stored within the class. This operation leaves the class in an
+       * undefined state.
        *
-       * @return The value stored in the object
+       * @return The value stored within the class
        */
-      constexpr auto value() && noexcept -> value_type { return std::move(m_value); }
+      constexpr auto take() && noexcept -> value_type { return std::move(m_value); }
 
-      /**
-       * @brief Compare the value stored between a left<value_type> and a right<U>
-       */
       template <std::equality_comparable_with<value_type> U>
       constexpr auto operator==(const right<U>& rhs) const -> bool
       {
-         return value() == rhs.value();
+         return borrow() == rhs.borrow();
       }
-
-      /**
-       * @brief Compare the value stored between a left<value_type> and a left<U>
-       */
       template <std::equality_comparable_with<value_type> U>
       constexpr auto operator==(const left<U>& rhs) const -> bool
       {
-         return value() == rhs.value();
+         return borrow() == rhs.borrow();
       }
 
    private:
@@ -194,11 +216,11 @@ namespace reglisse
       constexpr either() = delete;
       constexpr either(left<left_type>&& left_val)
       {
-         std::construct_at(&m_left, std::move(left_val).value()); // NOLINT
+         std::construct_at(&m_left, std::move(left_val).take()); // NOLINT
       }
       constexpr either(right<right_type>&& right_val) : m_is_left(false)
       {
-         std::construct_at(&m_right, std::move(right_val.value())); // NOLINT
+         std::construct_at(&m_right, std::move(right_val).take()); // NOLINT
       }
       constexpr either(const either& other) : m_is_left(other.is_left())
       {

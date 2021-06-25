@@ -28,9 +28,9 @@ TEST_CASE("left - constructor", "[either][left]")
    const auto left_float = left<float>(1.0f);
    const auto left_vector = left<std::vector<int>>({1, 1, 1});
 
-   CHECK(left_int.value() == 1);
-   CHECK(left_float.value() == 1.0f);
-   CHECK(std::size(left_vector.value()) == 3);
+   CHECK(left_int.borrow() == 1);
+   CHECK(left_float.borrow() == 1.0f);
+   CHECK(std::size(left_vector.borrow()) == 3);
 }
 
 TEST_CASE("left - value()", "[either][left]")
@@ -41,9 +41,9 @@ TEST_CASE("left - value()", "[either][left]")
       const auto left_float = left<float>(1.0f);
       const auto left_vector = left<std::vector<int>>({1, 1, 1});
 
-      CHECK(left_int.value() == 1);
-      CHECK(left_float.value() == 1.0f);
-      CHECK(std::size(left_vector.value()) == 3);
+      CHECK(left_int.borrow() == 1);
+      CHECK(left_float.borrow() == 1.0f);
+      CHECK(std::size(left_vector.borrow()) == 3);
    }
    SECTION("&")
    {
@@ -51,15 +51,15 @@ TEST_CASE("left - value()", "[either][left]")
       auto left_float = left<float>(1.0f);
       auto left_vector = left<std::vector<int>>({1, 1, 1});
 
-      CHECK(left_int.value() == 1);
-      CHECK(left_float.value() == 1.0f);
-      CHECK(std::size(left_vector.value()) == 3);
+      CHECK(left_int.borrow() == 1);
+      CHECK(left_float.borrow() == 1.0f);
+      CHECK(std::size(left_vector.borrow()) == 3);
    }
    SECTION("&&")
    {
-      CHECK(left<int>(1).value() == 1);
-      CHECK(left<float>(1.0f).value() == 1.0f);
-      CHECK(left<std::vector<int>>({1, 1, 1}).value() == std::vector<int>({1, 1, 1}));
+      CHECK(left<int>(1).take() == 1);
+      CHECK(left<float>(1.0f).take() == 1.0f);
+      CHECK(left<std::vector<int>>({1, 1, 1}).take() == std::vector<int>({1, 1, 1}));
    }
 }
 
