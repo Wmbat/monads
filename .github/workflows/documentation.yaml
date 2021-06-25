@@ -43,8 +43,11 @@ jobs:
 
       - name: Get Build2 
         run: |
+          cd ../
+          ls -lah
           sudo wget https://download.build2.org/0.13.0/build2-toolchain-0.13.0.tar.xz
-          tar -xf build2-toolchain-0.13.0.tar.xz
+          tar -xf build2-toolchain-0.13.0.tar.xz 
+          cd build2-toolchain-0.13.0
           ls -lah
 
       - name: Get hdoc 
