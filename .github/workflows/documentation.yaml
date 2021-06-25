@@ -18,7 +18,7 @@ jobs:
           sudo apt-get remove llvm-11 llvm-10
           sudo apt-get remove clang-11 clang-10
           sudo apt-get -y update
-          sudo apt-get -y install wget gnupg
+          sudo apt-get -y install wget gnupg curl
           sudo wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
           sudo bash -c "echo \"deb http://apt.llvm.org/focal/ llvm-toolchain-focal-12 main\" >> /etc/apt/sources.list.d/llvm.list"
           sudo bash -c "echo \"deb-src http://apt.llvm.org/focal/ llvm-toolchain-focal-12 main\" >> /etc/apt/sources.list.d/llvm.list"
@@ -43,19 +43,18 @@ jobs:
 
       - name: Get Build2 
         run: |
+          cd ../ && mkdir build2-build && cd build2-build
+          curl -sSfO https://download.build2.org/0.13.0/build2-install-0.13.0.sh
+          shasum -a 256 -b build2-install-0.13.0.sh
+          sh build2-install-0.13.0.sh
           cd ../
-          ls -lah
-          sudo wget https://download.build2.org/0.13.0/build2-toolchain-0.13.0.tar.xz
-          tar -xf build2-toolchain-0.13.0.tar.xz 
-          cd build2-toolchain-0.13.0
-          ls -lah
 
       - name: Get hdoc 
         run: |
           git clone https://github.com/hdoc/hdoc
           cd hdoc
           sudo meson build && sudo ninja -C build
-          cd ../  
+          cd ../libreglisse/
           hdoc/build/hdoc --verbose
           ls -lah
 
