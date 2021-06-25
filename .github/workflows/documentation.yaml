@@ -40,6 +40,7 @@ jobs:
               zlib1g-dev \
               libssl-dev \
               libcurl4-openssl-dev
+          gcc -v
 
       - name: Get compilation database
         run: |
