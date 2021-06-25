@@ -11,3 +11,4 @@ homepage = "docs/homepage.md"
 
 [paths]
 compile_commands = "compile_commands.json"
+output_dir = "hdoc-output"

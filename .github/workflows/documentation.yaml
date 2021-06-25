@@ -65,8 +65,8 @@ jobs:
           git clone https://github.com/hdoc/hdoc
           cd hdoc
           sudo meson build && sudo ninja -C build
-          cd ../ && mkdir temp/ && cd temp/
-          sudo ../hdoc/build/hdoc --verbose ../
+          cd ../
+          sudo hdoc/build/hdoc 
           ls -lah
 
 #      - name: Publish
