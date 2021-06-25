@@ -40,6 +40,9 @@ jobs:
               zlib1g-dev \
               libssl-dev \
               libcurl4-openssl-dev
+          https://download.build2.org/0.13.0/build2-toolchain-0.13.0.tar.xz
+          tar -xf build2-toolchain-0.13.0.tar.xz
+          ls -lah
 
       - name: Get hdoc 
         run: |
