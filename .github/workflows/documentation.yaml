@@ -24,27 +24,37 @@ jobs:
           sudo bash -c "echo \"deb-src http://apt.llvm.org/focal/ llvm-toolchain-focal-12 main\" >> /etc/apt/sources.list.d/llvm.list"
           sudo apt-get -y update
           sudo apt-get -y install \
-              build-essential \
-              meson \
-              ninja-build \
-              cmake \
-              xxd \
-              clang-12 \
-              libclang-common-12-dev \
-              libclang-12-dev \
-              lld-12 \
-              groff \
-              unzip \
-              pkg-config \
-              git \
-              zlib1g-dev \
-              libssl-dev \
-              libcurl4-openssl-dev \
-              gcc-11
-          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100
-          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 100
-          gcc -v
-          g++ -v
+            build-essential \
+            meson \
+            ninja-build \
+            cmake \
+            xxd \
+            clang-12 \
+            libclang-common-12-dev \
+            libclang-12-dev \
+            lld-12 \
+            groff \
+            unzip \
+            pkg-config \
+            git \
+            zlib1g-dev \
+            libssl-dev \
+            libcurl4-openssl-dev
+          sudo apt install build-essential manpages-dev software-properties-common
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+          sudo apt update && sudo apt install gcc-11 g++-11
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 90 \
+            --slave /usr/bin/g++ g++ /usr/bin/g++-9 \
+            --slave /usr/bin/gcov gcov /usr/bin/gcov-9 \
+            --slave /usr/bin/gcc-ar gcc-ar /usr/bin/gcc-ar-9 \
+            --slave /usr/bin/gcc-ranlib gcc-ranlib /usr/bin/gcc-ranlib-9 \
+            --slave /usr/bin/cpp cpp /usr/bin/cpp-9
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 110 \
+            --slave /usr/bin/g++ g++ /usr/bin/g++-11 \
+            --slave /usr/bin/gcov gcov /usr/bin/gcov-11 \
+            --slave /usr/bin/gcc-ar gcc-ar /usr/bin/gcc-ar-11 \
+            --slave /usr/bin/gcc-ranlib gcc-ranlib /usr/bin/gcc-ranlib-11 \
+            --slave /usr/bin/cpp cpp /usr/bin/cpp-11
 
       - name: Get compilation database
         run: |
