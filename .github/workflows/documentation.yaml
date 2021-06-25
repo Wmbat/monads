@@ -46,7 +46,9 @@ jobs:
           git clone https://github.com/hdoc/hdoc
           cd hdoc
           sudo meson build && sudo ninja -C build
-          cd ../ && ls -lah
+          cd ../  
+          hdoc/build/hdoc --verbose
+          ls -lah
 
 #      - name: Publish
 #        uses: peaceiris/actions-gh-pages@v3
