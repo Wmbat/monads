@@ -202,26 +202,39 @@ namespace reglisse
    };
 
    /**
-    * @brief
+    * @brief A monadic type that contains an element either one of it's left or right side.
     */
    template <std::movable L, std::movable R>
       requires(not(std::is_reference_v<L> or std::is_reference_v<R>))
    class either
    {
    public:
-      using left_type = L;
-      using right_type = R;
+      using left_type = L;  ///< Type alias for L
+      using right_type = R; ///< Type alias for R
 
    public:
       constexpr either() = delete;
+      /**
+       * @brief Construct from a left either.
+       *
+       * @param left_val Temporary value to store
+       */
       constexpr either(left<left_type>&& left_val)
       {
          std::construct_at(&m_left, std::move(left_val).take()); // NOLINT
       }
+      /**
+       * @brief Construct from a right either.
+       *
+       * @param right_val Temporary value to store
+       */
       constexpr either(right<right_type>&& right_val) : m_is_left(false)
       {
          std::construct_at(&m_right, std::move(right_val).take()); // NOLINT
       }
+      /**
+       * @brief Copy construct an either
+       */
       constexpr either(const either& other) : m_is_left(other.is_left())
       {
          if (is_left())
@@ -233,6 +246,9 @@ namespace reglisse
             std::construct_at(&m_right, other.borrow_right()); // NOLINT
          }
       }
+      /**
+       * @brief Move construct an either
+       */
       constexpr either(either&& other) noexcept : m_is_left(other.is_left())
       {
          if (is_left())
@@ -244,6 +260,9 @@ namespace reglisse
             std::construct_at(&m_right, other.take_right()); // NOLINT
          }
       }
+      /**
+       * @brief Destruct either.
+       */
       constexpr ~either()
       {
          if (is_left())
@@ -311,24 +330,70 @@ namespace reglisse
          return *this;
       }
 
+      /**
+       * @brief Borrow the value stored on the left side of the monad.
+       *
+       * Borrow the value stored on the left side of the monad. If the monad does not hold a value
+       * on the left, an assert will be thrown at debug time will be thrown. If you wish to have
+       * runtime checking, defining the **LIBREGLISSE_USE_EXCEPTIONS** macro before including this
+       * file will turn all assertions into exceptions.
+       */
       constexpr auto borrow_left() const& noexcept -> const left_type&
       {
          detail::handle_invalid_left_either_access(is_left());
 
          return m_left; // NOLINT
       }
+      /**
+       * @brief Borrow the value stored on the left side of the monad.
+       *
+       * Borrow the value stored on the left side of the monad.
+       *
+       * If the monad does not hold a value on the left, an assert will be thrown at debug time will
+       * be thrown. If you wish to have runtime checking, defining the
+       * **LIBREGLISSE_USE_EXCEPTIONS** macro before including this file will turn all assertions
+       * into exceptions.
+       *
+       * @returns The value store on the left side of the monad.
+       */
       constexpr auto borrow_left() & noexcept -> left_type&
       {
          detail::handle_invalid_left_either_access(is_left());
 
          return m_left; // NOLINT
       }
+      /**
+       * @brief Take the value stored on the left side of the monad.
+       *
+       * take the value stored on the left side of the monad. This operation leaves the monad in an
+       * undefined state, it is not recommended to use it after this function being called.
+       *
+       * If the monad does not hold a value on the left, an assert will be thrown at debug time will
+       * be thrown. If you wish to have runtime checking, defining the
+       * **LIBREGLISSE_USE_EXCEPTIONS** macro before including this file will turn all assertions
+       * into exceptions.
+       *
+       * @returns The value store on the left side of the monad.
+       */
       constexpr auto take_left() const&& noexcept -> const left_type
       {
          detail::handle_invalid_left_either_access(is_left());
 
          return std::move(m_left); // NOLINT
       }
+      /**
+       * @brief Take the value stored on the left side of the monad.
+       *
+       * take the value stored on the left side of the monad. This operation leaves the monad in an
+       * undefined state, it is not recommended to use it after this function being called.
+       *
+       * If the monad does not hold a value on the left, an assert will be thrown at debug time will
+       * be thrown. If you wish to have runtime checking, defining the
+       * **LIBREGLISSE_USE_EXCEPTIONS** macro before including this file will turn all assertions
+       * into exceptions.
+       *
+       * @returns The value store on the left side of the monad.
+       */
       constexpr auto take_left() && noexcept -> left_type
       {
          detail::handle_invalid_left_either_access(is_left());
@@ -336,24 +401,74 @@ namespace reglisse
          return std::move(m_left); // NOLINT
       }
 
+      /**
+       * @brief Borrow the value stored on the right side of the monad.
+       *
+       * Borrow the value stored on the right side of the monad.
+       *
+       * If the monad does not hold a value on the right, an assert will be thrown at debug time
+       * will be thrown. If you wish to have runtime checking, defining the
+       * **LIBREGLISSE_USE_EXCEPTIONS** macro before including this file will turn all assertions
+       * into exceptions.
+       *
+       * @returns The value store on the right side of the monad.
+       */
       constexpr auto borrow_right() const& noexcept -> const right_type&
       {
          detail::handle_invalid_right_either_access(is_right());
 
          return m_right; // NOLINT
       }
+      /**
+       * @brief Borrow the value stored on the right side of the monad.
+       *
+       * Borrow the value stored on the right side of the monad.
+       *
+       * If the monad does not hold a value on the right, an assert will be thrown at debug time
+       * will be thrown. If you wish to have runtime checking, defining the
+       * **LIBREGLISSE_USE_EXCEPTIONS** macro before including this file will turn all assertions
+       * into exceptions.
+       *
+       * @returns The value store on the right side of the monad.
+       */
       constexpr auto borrow_right() & noexcept -> right_type&
       {
          detail::handle_invalid_right_either_access(is_right());
 
          return m_right; // NOLINT
       }
+      /**
+       * @brief Take the value stored on the right side of the monad.
+       *
+       * take the value stored on the right side of the monad. This operation leaves the monad in an
+       * undefined state, it is not recommended to use it after this function being called.
+       *
+       * If the monad does not hold a value on the right, an assert will be thrown at debug time
+       * will be thrown. If you wish to have runtime checking, defining the
+       * **LIBREGLISSE_USE_EXCEPTIONS** macro before including this file will turn all assertions
+       * into exceptions.
+       *
+       * @returns The value store on the right side of the monad.
+       */
       constexpr auto take_right() const&& noexcept -> const right_type
       {
          detail::handle_invalid_right_either_access(is_right());
 
          return std::move(m_right); // NOLINT
       }
+      /**
+       * @brief Take the value stored on the right side of the monad.
+       *
+       * take the value stored on the right side of the monad. This operation leaves the monad in an
+       * undefined state, it is not recommended to use it after this function being called.
+       *
+       * If the monad does not hold a value on the right, an assert will be thrown at debug time
+       * will be thrown. If you wish to have runtime checking, defining the
+       * **LIBREGLISSE_USE_EXCEPTIONS** macro before including this file will turn all assertions
+       * into exceptions.
+       *
+       * @returns The value store on the right side of the monad.
+       */
       constexpr auto take_right() && noexcept -> right_type
       {
          detail::handle_invalid_right_either_access(is_right());
@@ -361,7 +476,17 @@ namespace reglisse
          return std::move(m_right); // NOLINT
       }
 
+      /**
+       * @brief Check if the monad is storing a value on the left.
+       *
+       * @returns **true** if it holds a value on the left
+       */
       [[nodiscard]] constexpr auto is_left() const noexcept -> bool { return m_is_left; }
+      /**
+       * @brief Check if the monad is storing a value on the right
+       *
+       * @returns **true** if it holds a value on the right
+       */
       [[nodiscard]] constexpr auto is_right() const noexcept -> bool { return !is_left(); }
 
       template <std::invocable<left_type> Fun>
