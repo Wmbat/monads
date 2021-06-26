@@ -336,6 +336,8 @@ namespace reglisse
        * If the monad does not hold a value on the left, an assert will be thrown at debug time will
        * be thrown. If you wish to have runtime checking, defining the LIBREGLISSE_USE_EXCEPTIONS
        * macro before including this file will turn all assertions into exceptions.
+       *
+       * @returns The value stored on the left side of the monad.
        */
       constexpr auto borrow_left() const& noexcept -> const left_type&
       {
@@ -351,7 +353,7 @@ namespace reglisse
        * LIBREGLISSE_USE_EXCEPTIONS macro before including this file will turn all assertions
        * into exceptions.
        *
-       * @returns The value store on the left side of the monad.
+       * @returns The value stored on the left side of the monad.
        */
       constexpr auto borrow_left() & noexcept -> left_type&
       {
@@ -370,7 +372,7 @@ namespace reglisse
        * LIBREGLISSE_USE_EXCEPTIONS macro before including this file will turn all assertions
        * into exceptions.
        *
-       * @returns The value store on the left side of the monad.
+       * @returns The value stored on the left side of the monad.
        */
       constexpr auto take_left() const&& noexcept -> const left_type
       {
@@ -389,7 +391,7 @@ namespace reglisse
        * LIBREGLISSE_USE_EXCEPTIONS macro before including this file will turn all assertions
        * into exceptions.
        *
-       * @returns The value store on the left side of the monad.
+       * @returns The value stored on the left side of the monad.
        */
       constexpr auto take_left() && noexcept -> left_type
       {
@@ -406,7 +408,7 @@ namespace reglisse
        * LIBREGLISSE_USE_EXCEPTIONS macro before including this file will turn all assertions
        * into exceptions.
        *
-       * @returns The value store on the right side of the monad.
+       * @returns The value stored on the right side of the monad.
        */
       constexpr auto borrow_right() const& noexcept -> const right_type&
       {
@@ -422,7 +424,7 @@ namespace reglisse
        * LIBREGLISSE_USE_EXCEPTIONS macro before including this file will turn all assertions
        * into exceptions.
        *
-       * @returns The value store on the right side of the monad.
+       * @returns The value stored on the right side of the monad.
        */
       constexpr auto borrow_right() & noexcept -> right_type&
       {
@@ -441,7 +443,7 @@ namespace reglisse
        * LIBREGLISSE_USE_EXCEPTIONS macro before including this file will turn all assertions
        * into exceptions.
        *
-       * @returns The value store on the right side of the monad.
+       * @returns The value stored on the right side of the monad.
        */
       constexpr auto take_right() const&& noexcept -> const right_type
       {
@@ -460,7 +462,7 @@ namespace reglisse
        * LIBREGLISSE_USE_EXCEPTIONS macro before including this file will turn all assertions
        * into exceptions.
        *
-       * @returns The value store on the right side of the monad.
+       * @returns The value stored on the right side of the monad.
        */
       constexpr auto take_right() && noexcept -> right_type
       {
@@ -489,6 +491,8 @@ namespace reglisse
        * right value.
        *
        * @param left_fun The function to invoke on the left value.
+       *
+       * @returns An either monad containing the result of left_fun or the right of this monad.
        */
       template <std::invocable<left_type> Fun>
       constexpr auto transform_left(
@@ -508,6 +512,8 @@ namespace reglisse
        * right value.
        *
        * @param left_fun The function to invoke on the left value.
+       *
+       * @returns An either monad containing the result of left_fun or the right of this monad.
        */
       template <std::invocable<left_type> Fun>
       constexpr auto
@@ -529,6 +535,9 @@ namespace reglisse
        * left value.
        *
        * @param right_fun The function to invoke on the right value.
+       *
+       * @returns An either monad containing the result of right_fun or the left value of this
+       * monad.
        */
       template <std::invocable<right_type> Fun>
       constexpr auto transform_right(
@@ -549,6 +558,9 @@ namespace reglisse
        * left value.
        *
        * @param right_fun The function to invoke on the right value.
+       *
+       * @returns An either monad containing the result of right_fun or the left value of this
+       * monad.
        */
       template <std::invocable<right_type> Fun>
       constexpr auto transform_right(
@@ -562,6 +574,17 @@ namespace reglisse
          return left(take_left());
       }
 
+      /**
+       * @brief Invoke a function that returns an either uisng the left value or return a new either
+       * containing the right value.
+       *
+       * If the monad doesn't hold a value on the right, it simply returns an either containing the
+       * right value.
+       *
+       * @param left_fun The function to invoke on the left value.
+       *
+       * @returns An either monad containing the result of left_fun or the right of this monad.
+       */
       template <detail::ensure_left_either<left_type, right_type> Fun>
       constexpr auto
       flat_transform_left(Fun&& left_fun) const&& -> std::invoke_result_t<Fun, left_type>
@@ -573,6 +596,17 @@ namespace reglisse
 
          return right(take_right());
       }
+      /**
+       * @brief Invoke a function that returns an either uisng the left value or return a new either
+       * containing the right value.
+       *
+       * If the monad doesn't hold a value on the right, it simply returns an either containing the
+       * right value.
+       *
+       * @param left_fun The function to invoke on the left value.
+       *
+       * @returns An either monad containing the result of left_fun or the right of this monad.
+       */
       template <std::invocable<left_type> Fun>
       constexpr auto flat_transform_left(Fun&& left_fun) && -> std::invoke_result_t<Fun, left_type>
       {
@@ -584,6 +618,18 @@ namespace reglisse
          return right(take_right());
       }
 
+      /**
+       * @brief Invoke a function that returns an either uisng the right value or return a new
+       * either containing the left value.
+       *
+       * If the monad doesn't hold a value on the left, it simply returns an either containing the
+       * left value.
+       *
+       * @param right_fun The function to invoke on the right value.
+       *
+       * @returns An either monad containing the result of right_fun or the left value of this
+       * monad.
+       */
       template <detail::ensure_right_either<left_type, right_type> Fun>
       constexpr auto
       flat_transform_right(Fun&& right_fun) const&& -> std::invoke_result_t<Fun, right_type>
@@ -595,6 +641,18 @@ namespace reglisse
 
          return left(take_left());
       }
+      /**
+       * @brief Invoke a function that returns an either uisng the right value or return a new
+       * either containing the left value.
+       *
+       * If the monad doesn't hold a value on the left, it simply returns an either containing the
+       * left value.
+       *
+       * @param right_fun The function to invoke on the right value.
+       *
+       * @returns An either monad containing the result of right_fun or the left value of this
+       * monad.
+       */
       template <detail::ensure_right_either<left_type, right_type> Fun>
       constexpr auto
       flat_transform_right(Fun&& right_fun) && -> std::invoke_result_t<Fun, right_type>

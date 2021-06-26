@@ -13,12 +13,21 @@
 
 namespace reglisse
 {
+   /**
+    * @brief Helper alias for std::reference_wrapper.
+    */
    template <typename Any>
    using ref = std::reference_wrapper<Any>;
 
+   /**
+    * @brief Helper alias for std::reference_wrapper to a const value.
+    */
    template <typename T>
    using const_ref = std::reference_wrapper<std::add_const_t<std::remove_reference_t<T>>>;
 
+   /**
+    * @brief Helper alias for std::reference_wrapper to a mutable value.
+    */
    template <typename T>
    using mut_ref = std::reference_wrapper<std::remove_const_t<std::remove_reference_t<T>>>;
 } // namespace reglisse

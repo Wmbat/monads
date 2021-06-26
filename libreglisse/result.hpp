@@ -66,6 +66,9 @@ namespace reglisse
       requires(not std::is_reference_v<T>)
    class ok;
 
+   /**
+    * @brief Helper class to construct a result containing an error.
+    */
    template <std::movable T>
       requires(not std::is_reference_v<T>)
    class err
@@ -97,6 +100,9 @@ namespace reglisse
       value_type m_value;
    };
 
+   /**
+    * @brief Helper class to construct a result containing a value.
+    */
    template <std::movable T>
       requires(not std::is_reference_v<T>)
    class ok
@@ -128,6 +134,9 @@ namespace reglisse
       value_type m_value;
    };
 
+   /**
+    * @brief A monadic type that container either a normal value or an error.
+    */
    template <std::movable ValueType, std::movable ErrorType>
       requires(not(std::is_reference_v<ValueType> or std::is_reference_v<ErrorType>))
    class result
@@ -243,22 +252,26 @@ namespace reglisse
       constexpr auto borrow() const& -> const value_type&
       {
          detail::handle_invalid_value_result_access(is_ok());
-         return m_value;
+
+         return m_value; // NOLINT
       }
       constexpr auto borrow() & -> value_type&
       {
          detail::handle_invalid_value_result_access(is_ok());
-         return m_value;
+
+         return m_value; // NOLINT
       }
       constexpr auto take() const&& -> value_type
       {
          detail::handle_invalid_value_result_access(is_ok());
-         return std::move(m_value);
+
+         return std::move(m_value); // NOLINT
       }
       constexpr auto take() && -> value_type
       {
          detail::handle_invalid_value_result_access(is_ok());
-         return std::move(m_value);
+
+         return std::move(m_value); // NOLINT
       }
 
       template <std::convertible_to<value_type> U>
@@ -266,7 +279,7 @@ namespace reglisse
       {
          if (is_ok())
          {
-            return std::move(m_value);
+            return std::move(m_value); // NOLINT
          }
 
          return std::forward<U>(other);
@@ -276,7 +289,7 @@ namespace reglisse
       {
          if (is_ok())
          {
-            return std::move(m_value);
+            return std::move(m_value); // NOLINT
          }
 
          return std::forward<U>(other);
@@ -285,22 +298,26 @@ namespace reglisse
       constexpr auto borrow_err() const& -> const error_type&
       {
          detail::handle_invalid_value_result_access(is_err());
-         return m_error;
+
+         return m_error; // NOLINT
       }
       constexpr auto borrow_err() & -> error_type&
       {
          detail::handle_invalid_value_result_access(is_err());
-         return m_error;
+
+         return m_error; // NOLINT
       }
       constexpr auto take_err() const&& -> error_type
       {
          detail::handle_invalid_value_result_access(is_err());
-         return std::move(m_error);
+
+         return std::move(m_error); // NOLINT
       }
       constexpr auto take_err() && -> error_type
       {
          detail::handle_invalid_value_result_access(is_err());
-         return std::move(m_error);
+
+         return std::move(m_error); // NOLINT
       }
 
       template <std::convertible_to<value_type> U>
@@ -308,7 +325,7 @@ namespace reglisse
       {
          if (is_ok())
          {
-            return std::move(m_value);
+            return std::move(m_value); // NOLINT
          }
 
          return std::forward<U>(other);
@@ -318,14 +335,14 @@ namespace reglisse
       {
          if (is_err())
          {
-            return std::move(m_error);
+            return std::move(m_error); // NOLINT
          }
 
          return std::forward<U>(other);
       }
 
-      constexpr auto is_ok() const noexcept -> bool { return m_is_ok; }
-      constexpr auto is_err() const noexcept -> bool { return not is_ok(); }
+      [[nodiscard]] constexpr auto is_ok() const noexcept -> bool { return m_is_ok; }
+      [[nodiscard]] constexpr auto is_err() const noexcept -> bool { return not is_ok(); }
       constexpr explicit operator bool() const noexcept { return is_ok(); }
 
       template <std::invocable<value_type> Fun>

@@ -100,8 +100,19 @@ namespace reglisse
 
    public:
       constexpr maybe() noexcept {}; // NOLINT
+      /**
+       * @brief construct an empty monad.
+       */
       constexpr maybe(none_t) noexcept {};
+      /**
+       * @brief construct monad from some value.
+       *
+       * @param val The value to take.
+       */
       constexpr maybe(some<T>&& val) : m_is_none(false), m_value(std::move(val.value())) {}
+      /**
+       * @brief Copy construct a maybe.
+       */
       constexpr maybe(const maybe& other) : m_is_none(other.is_none())
       {
          if (other.is_some())
@@ -109,6 +120,9 @@ namespace reglisse
             std::construct_at(&m_value, other.m_value); // NOLINT
          }
       }
+      /**
+       * @brief Move construct a maybe.
+       */
       constexpr maybe(maybe&& other) noexcept : m_is_none(other.is_none())
       {
          if (other.is_some())
@@ -116,6 +130,9 @@ namespace reglisse
             std::construct_at(&m_value, std::move(other.m_value)); // NOLINT
          }
       }
+      /**
+       * @brief Destroy maybe.
+       */
       constexpr ~maybe()
       {
          if (is_some())
@@ -161,31 +178,85 @@ namespace reglisse
          }
       }
 
+      /**
+       * @brief Borrow the value stored in the monad.
+       *
+       * If the monad does not hold a value, an assert will be thrown at debug time will
+       * be thrown. If you wish to have runtime checking, defining the LIBREGLISSE_USE_EXCEPTIONS
+       * macro before including this file will turn all assertions into exceptions.
+       *
+       * @returns The value stored in the monad.
+       */
       constexpr auto borrow() & -> value_type&
       {
          detail::handle_invalid_maybe_access(is_some());
 
          return m_value; // NOLINT
       }
+      /**
+       * @brief Borrow the value stored in the monad.
+       *
+       * If the monad does not hold a value, an assert will be thrown at debug time will
+       * be thrown. If you wish to have runtime checking, defining the LIBREGLISSE_USE_EXCEPTIONS
+       * macro before including this file will turn all assertions into exceptions.
+       *
+       * @returns The value stored in the monad.
+       */
       constexpr auto borrow() const& -> const value_type&
       {
          detail::handle_invalid_maybe_access(is_some());
 
          return m_value; // NOLINT
       }
+      /**
+       * @brief Take the value stored in the monad.
+       *
+       * This operation leaves the monad in an undefined state, it is not recommended to use it
+       * after this function being called.
+       *
+       * If the monad does not hold a value, an assert will be thrown at debug time
+       * will be thrown. If you wish to have runtime checking, defining the
+       * LIBREGLISSE_USE_EXCEPTIONS macro before including this file will turn all assertions
+       * into exceptions.
+       *
+       * @returns The value stored in the monad.
+       */
       constexpr auto take() && -> value_type
       {
          detail::handle_invalid_maybe_access(is_some());
 
          return std::move(m_value); // NOLINT
       }
-      constexpr auto take() const&& -> const value_type
+      /**
+       * @brief Take the value stored in the monad.
+       *
+       * This operation leaves the monad in an undefined state, it is not recommended to use it
+       * after this function being called.
+       *
+       * If the monad does not hold a value, an assert will be thrown at debug time
+       * will be thrown. If you wish to have runtime checking, defining the
+       * LIBREGLISSE_USE_EXCEPTIONS macro before including this file will turn all assertions
+       * into exceptions.
+       *
+       * @returns The value stored in the monad.
+       */
+      constexpr auto take() const&& -> value_type
       {
          detail::handle_invalid_maybe_access(is_some());
 
          return std::move(m_value); // NOLINT
       }
 
+      /**
+       * @brief Take the value stored in the monad or get a default.
+       *
+       * This operation may leave the monad in an undefined state, it is not recommended to use it
+       * after this function being called.
+       *
+       * @param [in] or_val The default value to use in case monad is empty
+       *
+       * @returns The value stored in the monad or the provided or_val.
+       */
       template <std::convertible_to<value_type> U>
       constexpr auto take_or(U&& or_val) && -> value_type
       {
@@ -196,6 +267,16 @@ namespace reglisse
 
          return static_cast<value_type>(std::forward<U>(or_val));
       }
+      /**
+       * @brief Take the value stored in the monad or get a default.
+       *
+       * This operation may leave the monad in an undefined state, it is not recommended to use it
+       * after this function being called.
+       *
+       * @param [in] or_val The default value to use in case monad is empty
+       *
+       * @returns The value stored in the monad or the provided or_val.
+       */
       template <std::convertible_to<value_type> U>
       constexpr auto take_or(U&& or_val) const&& -> value_type
       {
@@ -207,6 +288,9 @@ namespace reglisse
          return static_cast<value_type>(std::forward<U>(or_val));
       }
 
+      /**
+       * @brief Reset the monad to it's default state
+       */
       constexpr void reset()
       {
          if (is_some())
@@ -240,10 +324,32 @@ namespace reglisse
          }
       }
 
+      /**
+       * @brief Check if the monad holds some value.
+       *
+       * @returns true if monad is not empty
+       */
       [[nodiscard]] constexpr auto is_some() const noexcept -> bool { return not is_none(); }
+      /**
+       * @brief Check if the monad is empty.
+       *
+       * @returns true if monad is empty
+       */
       [[nodiscard]] constexpr auto is_none() const noexcept -> bool { return m_is_none; }
+      /**
+       * @brief Check if the monad holds some value.
+       *
+       * @returns true if monad is not empty
+       */
       [[nodiscard]] constexpr operator bool() const noexcept { return is_some(); }
 
+      /**
+       * @brief Invoke a function on the value stored within the monad if present.
+       *
+       * If the monad doesn't hold a value, an empty monad will be returned instead.
+       *
+       * @param [in] some_fun The function to invoke on the stored data.
+       */
       template <std::invocable<value_type> Fun>
       constexpr auto
       transform(Fun&& some_fun) const&& -> maybe<std::invoke_result_t<Fun, value_type&&>>
@@ -255,6 +361,13 @@ namespace reglisse
 
          return none;
       }
+      /**
+       * @brief Invoke a function on the value stored within the monad if present.
+       *
+       * If the monad doesn't hold a value, an empty monad will be returned instead.
+       *
+       * @param [in] some_fun The function to invoke on the stored data.
+       */
       template <std::invocable<value_type> Fun>
       constexpr auto transform(Fun&& some_fun) && -> maybe<std::invoke_result_t<Fun, value_type&&>>
       {
@@ -266,6 +379,16 @@ namespace reglisse
          return none;
       }
 
+      /**
+       * @brief Invoke a function on the value stored within the monad or a return a default value.
+       *
+       * If the monad is empty, the default value will be returned instead
+       *
+       * @param [in] some_fun The function to invoke on the stored data.
+       * @param [in] other The default value to use as fallback
+       *
+       * @returns The result of some_fun or the default value other.
+       */
       template <std::invocable<value_type> Fun, class Other>
       constexpr auto transform_or(Fun&& some_fun, Other&& other)
          const&& -> std::common_type_t<std::invoke_result_t<Fun, value_type&&>, Other>
@@ -277,6 +400,16 @@ namespace reglisse
 
          return std::forward<Other>(other);
       }
+      /**
+       * @brief Invoke a function on the value stored within the monad or a return a default value.
+       *
+       * If the monad is empty, the default value will be returned instead
+       *
+       * @param [in] some_fun The function to invoke on the stored data.
+       * @param [in] other The default value to use as fallback
+       *
+       * @returns The result of some_fun or the default value other.
+       */
       template <std::invocable<value_type> Fun, class Other>
       constexpr auto transform_or(
          Fun&& some_fun,
@@ -290,6 +423,15 @@ namespace reglisse
          return std::forward<Other>(other);
       }
 
+      /**
+       * @brief Invoke a function on the value stored that returns a maybe as well.
+       *
+       * If the monad is empty, simply return an empty monad.
+       *
+       * @param [in] some_fun The function to invoke on the stored data.
+       *
+       * @returns Either a maybe holding the the return value of some_fun or an empty maybe.
+       */
       template <std::invocable<value_type> Fun>
       constexpr auto and_then(Fun&& some_fun) const&& -> std::invoke_result_t<Fun, value_type>
       {
@@ -300,6 +442,15 @@ namespace reglisse
 
          return none;
       }
+      /**
+       * @brief Invoke a function on the value stored that returns a maybe as well.
+       *
+       * If the monad is empty, simply return an empty monad.
+       *
+       * @param [in] some_fun The function to invoke on the stored data.
+       *
+       * @returns Either a maybe holding the the return value of some_fun or an empty maybe.
+       */
       template <std::invocable<value_type> Fun>
       constexpr auto and_then(Fun&& some_fun) && -> std::invoke_result_t<Fun, value_type>
       {
@@ -311,27 +462,54 @@ namespace reglisse
          return none;
       }
 
+      /**
+       * @brief Invoke a function returning a monad if empty.
+       *
+       * If the monad is not empty, return a new monad containing the current value.
+       *
+       * @param [in] none_fun The function to invoke if empty
+       *
+       * @returns Either a maybe holding the the return value of some_fun or an empty maybe.
+       */
       template <std::invocable Fun>
       constexpr auto or_else(Fun&& none_fun) const&& -> maybe<value_type>
       {
          if (is_some())
          {
-            return std::move(*this);
+            return some(std::move(m_value)); // NOLINT
          }
 
          return std::invoke(std::forward<Fun>(none_fun));
       }
+      /**
+       * @brief Invoke a function returning a monad if empty.
+       *
+       * If the monad is not empty, return a new monad containing the current value.
+       *
+       * @param [in] none_fun The function to invoke if empty
+       *
+       * @returns Either a maybe holding the the return value of some_fun or an empty maybe.
+       */
       template <std::invocable Fun>
       constexpr auto or_else(Fun&& none_fun) && -> maybe<value_type>
       {
          if (is_some())
          {
-            return std::move(*this);
+            return some(std::move(m_value)); // NOLINT
          }
 
          return std::invoke(std::forward<Fun>(none_fun));
       }
 
+      /**
+       * @brief Invoke a function on the stored value or invoke a function returning a monad.
+       *
+       * If the monad is empty, call the Fun function on the value held within the maybe. If the
+       * maybe is empty, call the function Def that returns a maybe monad instead.
+       *
+       * @param [in] some_fun The function to invoke if some value is stored.
+       * @param [in] none_fun The function to invoke if no value is stored.
+       */
       template <std::invocable<value_type> Fun, std::invocable Def>
          requires std::convertible_to<std::invoke_result_t<Fun, value_type&&>,
                                       std::invoke_result_t<Def>>
@@ -345,6 +523,15 @@ namespace reglisse
 
          return std::invoke(std::forward<Def>(none_fun));
       }
+      /**
+       * @brief Invoke a function on the stored value or invoke a function returning a monad.
+       *
+       * If the monad is empty, call the Fun function on the value held within the maybe. If the
+       * maybe is empty, call the function Def that returns a maybe monad instead.
+       *
+       * @param [in] some_fun The function to invoke if some value is stored.
+       * @param [in] none_fun The function to invoke if no value is stored.
+       */
       template <std::invocable<value_type> Fun, std::invocable Def>
          requires std::convertible_to<std::invoke_result_t<Fun, value_type&&>,
                                       std::invoke_result_t<Def>>
@@ -371,9 +558,6 @@ namespace reglisse
 
    // clang-format on
 
-   /**
-    * @brief
-    */
    template <class First, std::equality_comparable_with<First> Second>
    constexpr auto
    operator==(const maybe<First>& lhs,
@@ -391,19 +575,11 @@ namespace reglisse
 
       return lhs.borrow() == rhs.borrow();
    }
-
-   /**
-    * @brief
-    */
    template <class Any>
    constexpr auto operator==(const maybe<Any>& m, none_t) noexcept -> bool
    {
       return m.is_none();
    }
-
-   /**
-    * @brief
-    */
    template <class Any, class Other>
    constexpr auto operator==(const maybe<Any>& m,
                              const Other& value) noexcept(noexcept(m.borrow() == value)) -> bool
@@ -422,13 +598,11 @@ namespace reglisse
 
       return lhs.is_some() <=> rhs.is_some();
    }
-
    template <class Any>
    constexpr auto operator<=>(const maybe<Any>& m, none_t) noexcept -> std::strong_ordering
    {
       return m.is_some() <=> false;
    }
-
    template <class Any, class Other>
    constexpr auto operator<=>(const maybe<Any>& m,
                               const Other& value) noexcept(noexcept(m.borrow() <=> value))
