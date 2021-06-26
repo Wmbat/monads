@@ -18,14 +18,14 @@ a `maybe`
 
 ```cpp
 maybe<int> my_int = some(1);    // constructs a maybe holding an int with value 1
-maybe<int> my_empty_int = none; // constructs an empty maybe with no value
+maybe<int> my_empty_int = none;                 // constructs an empty maybe with no value
 ```
 You can also check whether a `maybe` contains a value or not using `operator bool()`, `is_some()` and `is_none()`
 ```cpp
 maybe my_ptr = some(std::make_unique<int>(10)); // constructs a maybe holding an int with value 1
-if (my_ptr.is_some()) {}    // Checks if the maybe holds a value. true here
-if (my_ptr.is_none()) {}    // Checks if the maybe does not hold a value. false here
-if (my_ptr) {}              // Same behaviour as `is_some()`. true here
+if (my_ptr.is_some()) {}                        // Checks if the maybe holds a value. true here
+if (my_ptr.is_none()) {}                        // Checks if the maybe does not hold a value. false here
+if (my_ptr) {}                                  // Same behaviour as `is_some()`. true here
 ```
 
 #### Access
@@ -85,4 +85,8 @@ std::string empty = maybe<int>(none).transform_or(
 
 ## result
 
+### Examples
+
 ## either
+
+### Examples

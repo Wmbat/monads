@@ -2,7 +2,7 @@
  * @file result.hpp
  * @author wmbat wmbat@protonmail.com
  * @date Monday, 7th of june 2021
- * @brief
+ * @brief Contains everything related to the result monad
  * @copyright Copyright (C) 2021 wmbat.
  */
 
